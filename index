@@ -1,0 +1,357 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Smart Room Experience</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,600;1,300;1,600&family=Outfit:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+–bg: #08090c;
+–gold: #c9a84c;
+–white: #f2ede4;
+–dim: rgba(242,237,228,0.42);
+–line: rgba(201,168,76,0.18);
+}
+
+html, body {
+height: 100%;
+overflow: hidden;
+background: var(–bg);
+color: var(–white);
+font-family: ‘Outfit’, sans-serif;
+}
+
+.deck { width: 100vw; height: 100vh; position: relative; }
+
+.slide {
+position: absolute;
+inset: 0;
+display: flex;
+flex-direction: column;
+justify-content: center;
+padding: 0 12vw;
+opacity: 0;
+pointer-events: none;
+transition: opacity 0.45s ease;
+}
+.slide.active { opacity: 1; pointer-events: all; }
+
+.arrow {
+position: fixed;
+top: 50%;
+transform: translateY(-50%);
+background: none;
+border: none;
+color: rgba(201,168,76,0.25);
+font-size: 24px;
+cursor: pointer;
+z-index: 100;
+padding: 24px 16px;
+transition: color 0.2s;
+}
+.arrow:hover { color: var(–gold); }
+#prev { left: 8px; }
+#next { right: 8px; }
+
+.progress {
+position: fixed;
+bottom: 0; left: 0;
+height: 1px;
+background: var(–gold);
+transition: width 0.4s ease;
+z-index: 100;
+}
+
+.pg {
+position: fixed;
+bottom: 20px; right: 28px;
+font-size: 10px;
+letter-spacing: 2px;
+color: rgba(201,168,76,0.35);
+z-index: 100;
+}
+
+.eyebrow {
+font-size: 10px;
+letter-spacing: 4px;
+text-transform: uppercase;
+color: var(–gold);
+margin-bottom: 18px;
+font-weight: 400;
+}
+
+.rule {
+width: 36px;
+height: 1px;
+background: var(–gold);
+opacity: 0.45;
+margin: 22px 0;
+}
+
+ul.pts {
+list-style: none;
+display: flex;
+flex-direction: column;
+gap: 13px;
+}
+ul.pts li {
+font-size: clamp(14px, 1.55vw, 17px);
+color: var(–dim);
+font-weight: 300;
+display: flex;
+align-items: center;
+gap: 16px;
+line-height: 1;
+}
+ul.pts li::before {
+content: ‘’;
+width: 20px;
+height: 1px;
+background: var(–gold);
+flex-shrink: 0;
+opacity: 0.5;
+}
+
+.s1-title {
+font-family: ‘Cormorant Garamond’, serif;
+font-size: clamp(58px, 9vw, 108px);
+font-weight: 300;
+line-height: 0.95;
+letter-spacing: -1px;
+}
+.s1-title em { font-style: italic; color: var(–gold); }
+.s1-sub {
+font-size: 12px;
+color: var(–dim);
+letter-spacing: 4px;
+text-transform: uppercase;
+margin-top: 32px;
+font-weight: 300;
+}
+
+.big {
+font-family: ‘Cormorant Garamond’, serif;
+font-size: clamp(34px, 4.5vw, 56px);
+font-weight: 300;
+line-height: 1.1;
+}
+.big em { font-style: italic; color: var(–gold); }
+
+.seg-grid {
+display: grid;
+grid-template-columns: repeat(3, 1fr);
+gap: 0;
+margin-top: 6px;
+}
+.seg {
+padding: 20px 24px 20px 0;
+border-bottom: 1px solid var(–line);
+}
+.seg:nth-child(4), .seg:nth-child(5), .seg:nth-child(6) { border-bottom: none; }
+.seg-icon { font-size: 20px; margin-bottom: 8px; }
+.seg-name {
+font-size: clamp(13px, 1.4vw, 15px);
+font-weight: 500;
+color: var(–white);
+margin-bottom: 3px;
+}
+.seg-why {
+font-size: 12px;
+color: var(–dim);
+font-weight: 300;
+}
+
+.price {
+font-family: ‘Cormorant Garamond’, serif;
+font-size: clamp(60px, 8vw, 90px);
+font-weight: 300;
+color: var(–gold);
+line-height: 1;
+margin-top: 8px;
+}
+.price-note {
+font-size: 12px;
+color: var(–dim);
+letter-spacing: 2px;
+text-transform: uppercase;
+margin-top: 8px;
+}
+
+.checklist {
+list-style: none;
+display: grid;
+grid-template-columns: 1fr 1fr;
+gap: 14px 60px;
+}
+.checklist li {
+font-size: clamp(13px, 1.5vw, 16px);
+color: var(–dim);
+font-weight: 300;
+display: flex;
+align-items: center;
+gap: 14px;
+line-height: 1;
+}
+.checklist li::before {
+content: ‘’;
+width: 14px;
+height: 14px;
+border: 1px solid rgba(201,168,76,0.35);
+border-radius: 2px;
+flex-shrink: 0;
+}
+</style>
+
+</head>
+<body>
+
+<button class="arrow" id="prev">←</button>
+<button class="arrow" id="next">→</button>
+
+<div class="progress" id="bar"></div>
+<div class="pg" id="pg">1 / 6</div>
+
+<div class="deck">
+
+  <!-- 1 · TITLE -->
+
+  <div class="slide active">
+    <div class="eyebrow">Business Overview</div>
+    <div class="s1-title">Smart<br><em>Room</em><br>Experience</div>
+    <div class="s1-sub">Premium ambient living · Designed &amp; installed</div>
+  </div>
+
+  <!-- 2 · WHAT WE DO -->
+
+  <div class="slide">
+    <div class="eyebrow">What this business does</div>
+    <div class="big">We design how<br>a room <em>feels.</em></div>
+    <div class="rule"></div>
+    <ul class="pts">
+      <li>Lighting, ambience and scene design — not just products</li>
+      <li>Configured routines built around how people actually live</li>
+      <li>Non-invasive installs — fully renter-friendly, no damage</li>
+      <li>The expertise is in the design, not the hardware</li>
+    </ul>
+  </div>
+
+  <!-- 3 · WHO WE SERVE -->
+
+  <div class="slide">
+    <div class="eyebrow">Who this is for</div>
+    <div class="big" style="font-size:clamp(26px,3.2vw,40px);margin-bottom:24px;">Six distinct customer segments.</div>
+    <div class="seg-grid">
+      <div class="seg">
+        <div class="seg-icon">🏠</div>
+        <div class="seg-name">Airbnb Hosts</div>
+        <div class="seg-why">Differentiate the listing. Justify higher rates.</div>
+      </div>
+      <div class="seg">
+        <div class="seg-icon">🎮</div>
+        <div class="seg-name">Gamers</div>
+        <div class="seg-why">A proper immersive setup, correctly done.</div>
+      </div>
+      <div class="seg">
+        <div class="seg-icon">🎬</div>
+        <div class="seg-name">Home Theatre</div>
+        <div class="seg-why">Scenes that match the on-screen experience.</div>
+      </div>
+      <div class="seg">
+        <div class="seg-icon">🌙</div>
+        <div class="seg-name">Shift Workers</div>
+        <div class="seg-why">Sleep and wake routines around rotating schedules.</div>
+      </div>
+      <div class="seg">
+        <div class="seg-icon">🎉</div>
+        <div class="seg-name">Social Hosts</div>
+        <div class="seg-why">Atmosphere that adapts to the occasion.</div>
+      </div>
+      <div class="seg">
+        <div class="seg-icon">🌅</div>
+        <div class="seg-name">Wellness-Focused Renters</div>
+        <div class="seg-why">Light as a tool for sleep, focus and recovery.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 4 · THE OFFER -->
+
+  <div class="slide">
+    <div class="eyebrow">The offering</div>
+    <div class="big">Smart Room<br><em>Experience Package</em></div>
+    <div class="price">From $1,499</div>
+    <div class="price-note">Designed · Installed · Configured to the client</div>
+    <div style="font-size:12px;color:var(--dim);letter-spacing:1px;margin-top:14px;">Full home upgrades can reach $20,000 – $30,000</div>
+    <div class="rule"></div>
+    <ul class="pts">
+      <li>Smart lighting, LED, speaker and plug — curated hardware</li>
+      <li>Google Home — fully integrated voice and app control</li>
+      <li>Four configured scenes: Wake · Focus · Unwind · Sleep</li>
+      <li>Personalised to how the client uses their space</li>
+    </ul>
+  </div>
+
+  <!-- 5 · HOW IT WORKS -->
+
+  <div class="slide">
+    <div class="eyebrow">How the business operates</div>
+    <div class="big" style="margin-bottom:28px;">Lean. <em>Repeatable.</em></div>
+    <ul class="pts">
+      <li>Our own rooms are installed first — the live demo and content source</li>
+      <li>One standardised ecosystem, one package, one install process</li>
+      <li>Revenue from install fee, hardware margin and future upgrades</li>
+      <li>Content from real installs drives all marketing — no ad spend needed</li>
+      <li>No subscriptions, no software, no unnecessary complexity</li>
+    </ul>
+  </div>
+
+  <!-- 6 · DECISIONS -->
+
+  <div class="slide">
+    <div class="eyebrow">Tomorrow's Meeting</div>
+    <div class="big" style="font-size:clamp(26px,3vw,38px);margin-bottom:28px;">Things to work through <em>together.</em></div>
+    <ul class="checklist">
+      <li>Business name</li>
+      <li>Lighting ecosystem</li>
+      <li>Lead customer segment</li>
+      <li>Starter package — exact devices</li>
+      <li>Pricing and margin structure</li>
+      <li>Roles and responsibilities</li>
+      <li>First content plan</li>
+      <li>Initial budget</li>
+    </ul>
+  </div>
+
+</div>
+
+<script>
+  const slides = document.querySelectorAll('.slide');
+  const bar = document.getElementById('bar');
+  const pg = document.getElementById('pg');
+  const n = slides.length;
+  let i = 0;
+
+  function go(dir) {
+    slides[i].classList.remove('active');
+    i = Math.max(0, Math.min(n - 1, i + dir));
+    slides[i].classList.add('active');
+    bar.style.width = ((i + 1) / n * 100) + '%';
+    pg.textContent = (i + 1) + ' / ' + n;
+  }
+
+  document.getElementById('next').addEventListener('click', () => go(1));
+  document.getElementById('prev').addEventListener('click', () => go(-1));
+  document.addEventListener('keydown', e => {
+    if (e.key === 'ArrowRight' || e.key === ' ') go(1);
+    if (e.key === 'ArrowLeft') go(-1);
+  });
+
+  bar.style.width = (1 / n * 100) + '%';
+</script>
+
+</body>
+</html>
